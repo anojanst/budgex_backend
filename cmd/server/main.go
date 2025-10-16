@@ -21,6 +21,9 @@ func main() {
 	}
 
 	gdb := db.Must(db.Connect(cfg.PostgresDSN()))
+	if err := db.AutoMigrate(gdb); err != nil {
+		log.Fatalf("migrate: %v", err)
+	}
 
 	app := api.Build(gdb)
 

@@ -3,6 +3,8 @@ package db
 import (
 	"log"
 
+	"budgex_backend/internal/models"
+
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -40,4 +42,20 @@ func Must(gdb *gorm.DB, err error) *gorm.DB {
 		log.Fatalf("db connect failed: %v", err)
 	}
 	return gdb
+}
+
+func AutoMigrate(gdb *gorm.DB) error {
+	// Required for gen_random_uuid()
+	if err := gdb.Exec(`CREATE EXTENSION IF NOT EXISTS pgcrypto;`).Error; err != nil {
+		return err
+	}
+	// Tables
+	if err := gdb.AutoMigrate(&models.Category{}, &models.Transaction{}, &models.Budget{}); err != nil {
+		return err
+	}
+	// 🔑 Composite unique index for budgets upsert
+	return gdb.Exec(`
+		CREATE UNIQUE INDEX IF NOT EXISTS idx_budgets_user_month_category
+		ON budgets (user_id, month, category_id);
+	`).Error
 }

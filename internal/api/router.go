@@ -24,11 +24,9 @@ func Build(db *gorm.DB) *fiber.App {
 
 	// Health
 	handlers.HealthHandler{DB: db}.Register(api)
-
-	// Placeholders for next tasks:
-	// transactions.Register(api, db)
-	// categories.Register(api, db)
-	// budgets.Register(api, db)
+	handlers.TxHandler{DB: db}.Register(api)
+	handlers.CategoryHandler{DB: db}.Register(api)
+	handlers.BudgetHandler{DB: db}.Register(api)
 
 	return app
 }
