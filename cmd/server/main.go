@@ -12,6 +12,8 @@ import (
 	"budgex_backend/internal/api"
 	"budgex_backend/internal/config"
 	"budgex_backend/internal/db"
+
+	"github.com/clerk/clerk-sdk-go/v2"
 )
 
 func main() {
@@ -19,6 +21,14 @@ func main() {
 	if err != nil {
 		log.Fatalf("config: %v", err)
 	}
+
+	// Initialize Clerk SDK
+	clerkSecretKey := os.Getenv("CLERK_SECRET_KEY")
+	if clerkSecretKey == "" {
+		log.Fatal("CLERK_SECRET_KEY environment variable is not set")
+	}
+	log.Printf("Clerk SDK initialized with secret key: %s...", clerkSecretKey[:10])
+	clerk.SetKey(clerkSecretKey)
 
 	gdb := db.Must(db.Connect(cfg.PostgresDSN()))
 	if err := db.AutoMigrate(gdb); err != nil {

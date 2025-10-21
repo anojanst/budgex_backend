@@ -27,9 +27,12 @@ type createTxDTO struct {
 }
 
 func userID(c *fiber.Ctx) string {
-	// TEMP for now (no auth yet): single-user dev
-	// later: read from Clerk claims in middleware
-	return "dev-user"
+	if v := c.Locals("user_id"); v != nil {
+		if s, _ := v.(string); s != "" {
+			return s
+		}
+	}
+	return ""
 }
 
 func (h TxHandler) List(c *fiber.Ctx) error {
