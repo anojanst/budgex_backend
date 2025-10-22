@@ -1,0 +1,294 @@
+basePath: /api
+definitions:
+  handlers.createCategoryDTO:
+    properties:
+      name:
+        type: string
+      parent_id:
+        type: string
+    type: object
+  handlers.createTxDTO:
+    properties:
+      amount:
+        type: number
+      category_id:
+        type: string
+      date:
+        description: ISO; defaults now
+        type: string
+      memo:
+        type: string
+      payee:
+        type: string
+      tags:
+        type: string
+      type:
+        description: '"income" | "expense"'
+        type: string
+    type: object
+  handlers.upsertBudgetDTO:
+    properties:
+      amount:
+        description: required
+        type: number
+      category_id:
+        description: required
+        type: string
+      month:
+        description: '"YYYY-MM"'
+        type: string
+    type: object
+  models.Budget:
+    properties:
+      amount:
+        type: number
+      category_id:
+        type: string
+      created_at:
+        type: string
+      deleted_at:
+        type: string
+      id:
+        type: string
+      month:
+        type: string
+      updated_at:
+        type: string
+      user_id:
+        type: string
+    type: object
+  models.Category:
+    properties:
+      created_at:
+        type: string
+      deleted_at:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      parent_id:
+        type: string
+      updated_at:
+        type: string
+      user_id:
+        type: string
+    type: object
+  models.Transaction:
+    properties:
+      amount:
+        type: number
+      category_id:
+        type: string
+      created_at:
+        type: string
+      date:
+        type: string
+      deleted_at:
+        type: string
+      id:
+        type: string
+      memo:
+        type: string
+      payee:
+        type: string
+      source:
+        type: string
+      tags:
+        type: string
+      type:
+        type: string
+      updated_at:
+        type: string
+      user_id:
+        type: string
+    type: object
+info:
+  contact: {}
+  description: Backend API for Budgex (transactions, categories, budgets).
+  title: Budgex API
+  version: 0.1.0
+paths:
+  /budgets/:
+    get:
+      parameters:
+      - description: YYYY-MM (defaults current)
+        in: query
+        name: month
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Budget'
+            type: array
+      security:
+      - BearerAuth: []
+      summary: List budgets for a month
+      tags:
+      - budgets
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Budget
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.upsertBudgetDTO'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Budget'
+      security:
+      - BearerAuth: []
+      summary: Upsert budget row (month + category_id)
+      tags:
+      - budgets
+  /categories/:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Category'
+            type: array
+      security:
+      - BearerAuth: []
+      summary: List categories
+      tags:
+      - categories
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Category
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.createCategoryDTO'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Category'
+      security:
+      - BearerAuth: []
+      summary: Create category
+      tags:
+      - categories
+  /health:
+    get:
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Health check
+      tags:
+      - health
+  /me:
+    get:
+      responses:
+        "200":
+          description: user_id
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Current user id
+      tags:
+      - auth
+  /transactions/:
+    get:
+      parameters:
+      - default: 100
+        description: Max items
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Transaction'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: List recent transactions
+      tags:
+      - transactions
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Transaction
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.createTxDTO'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Transaction'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create transaction
+      tags:
+      - transactions
+schemes:
+- http
+securityDefinitions:
+  BearerAuth:
+    description: '"Format: Bearer {token}"'
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

@@ -23,6 +23,14 @@ type upsertBudgetDTO struct {
 	Amount     float64 `json:"amount"`      // required
 }
 
+// List godoc
+// @Summary      List budgets for a month
+// @Tags         budgets
+// @Security     BearerAuth
+// @Produce      json
+// @Param        month  query  string  false  "YYYY-MM (defaults current)"
+// @Success      200    {array} models.Budget
+// @Router       /budgets/ [get]
 func (h BudgetHandler) List(c *fiber.Ctx) error {
 	month := c.Query("month")
 	if month == "" {
@@ -37,6 +45,15 @@ func (h BudgetHandler) List(c *fiber.Ctx) error {
 	return c.JSON(out)
 }
 
+// Upsert godoc
+// @Summary      Upsert budget row (month + category_id)
+// @Tags         budgets
+// @Security     BearerAuth
+// @Accept       json
+// @Produce      json
+// @Param        body  body  upsertBudgetDTO  true  "Budget"
+// @Success      201   {object} models.Budget
+// @Router       /budgets/ [post]
 func (h BudgetHandler) Upsert(c *fiber.Ctx) error {
 	var in upsertBudgetDTO
 	if err := c.BodyParser(&in); err != nil {

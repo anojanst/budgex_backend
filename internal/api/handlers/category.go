@@ -20,6 +20,13 @@ type createCategoryDTO struct {
 	ParentID *string `json:"parent_id"`
 }
 
+// List godoc
+// @Summary      List categories
+// @Tags         categories
+// @Security     BearerAuth
+// @Produce      json
+// @Success      200  {array}  models.Category
+// @Router       /categories/ [get]
 func (h CategoryHandler) List(c *fiber.Ctx) error {
 	var out []models.Category
 	if err := h.DB.Where("user_id = ? AND deleted_at IS NULL", userID(c)).
@@ -29,6 +36,15 @@ func (h CategoryHandler) List(c *fiber.Ctx) error {
 	return c.JSON(out)
 }
 
+// Create godoc
+// @Summary      Create category
+// @Tags         categories
+// @Security     BearerAuth
+// @Accept       json
+// @Produce      json
+// @Param        body  body  createCategoryDTO  true  "Category"
+// @Success      201   {object} models.Category
+// @Router       /categories/ [post]
 func (h CategoryHandler) Create(c *fiber.Ctx) error {
 	var in createCategoryDTO
 	if err := c.BodyParser(&in); err != nil || in.Name == "" {

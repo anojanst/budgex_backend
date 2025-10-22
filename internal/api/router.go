@@ -11,7 +11,15 @@ import (
 )
 
 func Build(db *gorm.DB) *fiber.App {
-	app := fiber.New(fiber.Config{AppName: "budgex-backend", DisableStartupMessage: true})
+	app := fiber.New(fiber.Config{
+		AppName:               "budgex-backend",
+		DisableStartupMessage: true,
+		ServerHeader:          "Budgex-API",
+		// Increase header buffer to handle large cookies (Clerk + dev cookies)
+		ReadBufferSize:  64 * 1024,       // 64KB header buffer (was ~4KB default)
+		WriteBufferSize: 8192,            // 8KB write buffer
+		BodyLimit:       4 * 1024 * 1024, // 4MB body limit
+	})
 
 	// Order matters: requestid -> otel -> auth -> logz
 	app.Use(requestid.New())   // adds c.Locals("requestid")

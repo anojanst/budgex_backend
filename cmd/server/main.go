@@ -1,3 +1,13 @@
+// @title           Budgex API
+// @version         0.1.0
+// @description     Backend API for Budgex (transactions, categories, budgets).
+// @BasePath        /api
+// @schemes         http
+// @securityDefinitions.apikey BearerAuth
+// @in              header
+// @name            Authorization
+// @description     "Format: Bearer {token}"
+
 package main
 
 import (
@@ -12,9 +22,11 @@ import (
 	"budgex_backend/internal/api"
 	"budgex_backend/internal/config"
 	"budgex_backend/internal/db"
+	_ "budgex_backend/internal/docs" // generated package
 	"budgex_backend/internal/observability"
 
 	"github.com/clerk/clerk-sdk-go/v2"
+	fiberSwagger "github.com/swaggo/fiber-swagger"
 )
 
 func main() {
@@ -55,6 +67,9 @@ func main() {
 	}
 
 	app := api.Build(gdb)
+
+	// Swagger UI (served at /swagger/index.html)
+	app.Get("/swagger/*", fiberSwagger.WrapHandler)
 
 	// run server in a goroutine for graceful shutdown
 	addr := fmt.Sprintf(":%d", cfg.Port)

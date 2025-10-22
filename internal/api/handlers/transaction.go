@@ -35,6 +35,15 @@ func userID(c *fiber.Ctx) string {
 	return ""
 }
 
+// List godoc
+// @Summary      List recent transactions
+// @Tags         transactions
+// @Security     BearerAuth
+// @Produce      json
+// @Param        limit  query   int  false  "Max items" default(100)
+// @Success      200    {array} models.Transaction
+// @Failure      401    {object} map[string]string
+// @Router       /transactions/ [get]
 func (h TxHandler) List(c *fiber.Ctx) error {
 	var out []models.Transaction
 	err := h.DB.
@@ -48,6 +57,17 @@ func (h TxHandler) List(c *fiber.Ctx) error {
 	return c.JSON(out)
 }
 
+// Create godoc
+// @Summary      Create transaction
+// @Tags         transactions
+// @Security     BearerAuth
+// @Accept       json
+// @Produce      json
+// @Param        body  body    createTxDTO  true  "Transaction"
+// @Success      201   {object} models.Transaction
+// @Failure      400   {object} map[string]string
+// @Failure      401   {object} map[string]string
+// @Router       /transactions/ [post]
 func (h TxHandler) Create(c *fiber.Ctx) error {
 	var in createTxDTO
 	if err := c.BodyParser(&in); err != nil {
