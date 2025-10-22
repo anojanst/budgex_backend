@@ -12,6 +12,7 @@ import (
 	"budgex_backend/internal/api"
 	"budgex_backend/internal/config"
 	"budgex_backend/internal/db"
+	"budgex_backend/internal/observability"
 
 	"github.com/clerk/clerk-sdk-go/v2"
 )
@@ -21,6 +22,24 @@ func main() {
 	if err != nil {
 		log.Fatalf("config: %v", err)
 	}
+
+	// Logger
+	_, err = observability.InitLogger(
+		getEnv("SERVICE_NAME", "budgex-backend"),
+		getEnv("LOG_LEVEL", "info"),
+	)
+	if err != nil {
+		log.Fatalf("logger: %v", err)
+	}
+
+	// Tracing
+	tracerCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	tp, err := observability.InitTracer(tracerCtx, getEnv("SERVICE_NAME", "budgex-backend"))
+	if err != nil {
+		log.Fatalf("tracer: %v", err)
+	}
+	defer observability.ShutdownTracer(context.Background(), tp)
 
 	// Initialize Clerk SDK
 	clerkSecretKey := os.Getenv("CLERK_SECRET_KEY")
@@ -64,4 +83,11 @@ func main() {
 
 	<-ctx.Done()
 	log.Println("server exited")
+}
+
+func getEnv(k, def string) string {
+	if v := os.Getenv(k); v != "" {
+		return v
+	}
+	return def
 }
