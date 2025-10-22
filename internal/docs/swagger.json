@@ -145,7 +145,7 @@
                 }
             }
         },
-        "/health": {
+        "/healthz": {
             "get": {
                 "tags": [
                     "health"

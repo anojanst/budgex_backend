@@ -202,7 +202,7 @@ go test ./internal/api/handlers -v
 
 ```bash
 # Check server status
-curl http://localhost:8080/api/health
+curl http://localhost:8080/api/healthz
 
 # Test authentication
 curl -H "Authorization: Bearer YOUR_JWT_TOKEN" http://localhost:8080/api/me
@@ -214,7 +214,7 @@ tail -f /var/log/budgex-backend.log  # if logging to file
 ## API Endpoints
 
 ### Public Endpoints
-- `GET /api/health` - Health check
+- `GET /api/healthz` - Health check
 - `GET /swagger/index.html` - Swagger UI
 
 ### Protected Endpoints (Require Bearer Token)

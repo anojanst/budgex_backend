@@ -149,7 +149,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/health": {
+        "/healthz": {
             "get": {
                 "tags": [
                     "health"

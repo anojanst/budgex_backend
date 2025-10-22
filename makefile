@@ -100,7 +100,7 @@ lint:
 # Health check
 health:
 	@echo "Checking server health..."
-	@curl -s http://localhost:8080/api/health | jq . || echo "Server not responding"
+	@curl -s http://localhost:8080/api/healthz | jq . || echo "Server not responding"
 
 # API testing
 test-auth:

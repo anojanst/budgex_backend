@@ -10,14 +10,14 @@ type HealthHandler struct {
 }
 
 func (h HealthHandler) Register(r fiber.Router) {
-	r.Get("/health", h.health)
+	r.Get("/healthz", h.health)
 }
 
 // health godoc
 // @Summary  Health check
 // @Tags     health
 // @Success  200  {object}  map[string]any
-// @Router   /health [get]
+// @Router   /healthz [get]
 func (h HealthHandler) health(c *fiber.Ctx) error {
 	// Basic DB ping; if DB is down, still return 503 instead of panicking
 	if h.DB != nil {

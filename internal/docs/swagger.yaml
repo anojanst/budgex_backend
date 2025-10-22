@@ -190,7 +190,7 @@ paths:
       summary: Create category
       tags:
       - categories
-  /health:
+  /healthz:
     get:
       responses:
         "200":
