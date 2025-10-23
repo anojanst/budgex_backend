@@ -15,6 +15,98 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/analytics/cashflow_forecast": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "analytics"
+                ],
+                "summary": "Cashflow forecast (simple average projection)",
+                "parameters": [
+                    {
+                        "maximum": 12,
+                        "minimum": 1,
+                        "type": "integer",
+                        "description": "How many past months to average (default 3)",
+                        "name": "window_months",
+                        "in": "query"
+                    },
+                    {
+                        "maximum": 12,
+                        "minimum": 1,
+                        "type": "integer",
+                        "description": "How many future months to forecast (default 3)",
+                        "name": "horizon",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.CashflowResp"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/analytics/spend_summary": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "analytics"
+                ],
+                "summary": "Spend summary for a month",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "YYYY-MM (defaults to current)",
+                        "name": "month",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.SpendSummaryResp"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/budgets/": {
             "get": {
                 "security": [
@@ -300,6 +392,80 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "handlers.CashflowPoint": {
+            "type": "object",
+            "properties": {
+                "expense": {
+                    "type": "number"
+                },
+                "forecast": {
+                    "description": "true for projected months",
+                    "type": "boolean"
+                },
+                "income": {
+                    "type": "number"
+                },
+                "month": {
+                    "description": "YYYY-MM",
+                    "type": "string"
+                },
+                "net": {
+                    "type": "number"
+                }
+            }
+        },
+        "handlers.CashflowResp": {
+            "type": "object",
+            "properties": {
+                "horizon": {
+                    "type": "integer"
+                },
+                "points": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/handlers.CashflowPoint"
+                    }
+                },
+                "window_months": {
+                    "type": "integer"
+                }
+            }
+        },
+        "handlers.SpendSummaryResp": {
+            "type": "object",
+            "properties": {
+                "by_category": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/handlers.SpendSummaryRow"
+                    }
+                },
+                "month": {
+                    "description": "YYYY-MM",
+                    "type": "string"
+                },
+                "total_expense": {
+                    "type": "number"
+                },
+                "total_income": {
+                    "type": "number"
+                }
+            }
+        },
+        "handlers.SpendSummaryRow": {
+            "type": "object",
+            "properties": {
+                "category": {
+                    "type": "string"
+                },
+                "category_id": {
+                    "type": "string"
+                },
+                "total": {
+                    "type": "number"
+                }
+            }
+        },
         "handlers.createCategoryDTO": {
             "type": "object",
             "properties": {

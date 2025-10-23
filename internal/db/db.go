@@ -44,18 +44,58 @@ func Must(gdb *gorm.DB, err error) *gorm.DB {
 	return gdb
 }
 
+// internal/db/db.go
 func AutoMigrate(gdb *gorm.DB) error {
-	// Required for gen_random_uuid()
 	if err := gdb.Exec(`CREATE EXTENSION IF NOT EXISTS pgcrypto;`).Error; err != nil {
 		return err
 	}
-	// Tables
 	if err := gdb.AutoMigrate(&models.Category{}, &models.Transaction{}, &models.Budget{}); err != nil {
 		return err
 	}
-	// 🔑 Composite unique index for budgets upsert
+	// 🔧 ensure user_id is TEXT in all tables
+	if err := gdb.Exec(`ALTER TABLE categories   ALTER COLUMN user_id TYPE text USING user_id::text;`).Error; err != nil {
+		return err
+	}
+	if err := gdb.Exec(`ALTER TABLE transactions ALTER COLUMN user_id TYPE text USING user_id::text;`).Error; err != nil {
+		return err
+	}
+	if err := gdb.Exec(`ALTER TABLE budgets      ALTER COLUMN user_id TYPE text USING user_id::text;`).Error; err != nil {
+		return err
+	}
+
+	if err := gdb.Exec(`
+  -- transactions.category_id: text -> uuid (keep NULLs safe)
+  ALTER TABLE transactions
+  ALTER COLUMN category_id DROP NOT NULL;
+`).Error; err != nil {
+		return err
+	}
+
+	if err := gdb.Exec(`
+  ALTER TABLE transactions
+  ALTER COLUMN category_id TYPE uuid
+  USING (CASE WHEN category_id IS NULL OR category_id = '' THEN NULL ELSE category_id::uuid END);
+`).Error; err != nil {
+		return err
+	}
+
+	if err := gdb.Exec(`
+  -- budgets.category_id: text -> uuid
+  ALTER TABLE budgets
+  ALTER COLUMN category_id TYPE uuid
+  USING (CASE WHEN category_id IS NULL OR category_id = '' THEN NULL ELSE category_id::uuid END);
+`).Error; err != nil {
+		return err
+	}
+
+	// (optional) helpful indexes for analytics
+	_ = gdb.Exec(`CREATE INDEX IF NOT EXISTS idx_tx_user_date ON transactions (user_id, date);`).Error
+	_ = gdb.Exec(`CREATE INDEX IF NOT EXISTS idx_tx_user_type_date ON transactions (user_id, type, date);`).Error
+	_ = gdb.Exec(`CREATE INDEX IF NOT EXISTS idx_tx_user_cat_date ON transactions (user_id, category_id, date);`).Error
+
+	// existing unique index for budgets stays valid
 	return gdb.Exec(`
-		CREATE UNIQUE INDEX IF NOT EXISTS idx_budgets_user_month_category
-		ON budgets (user_id, month, category_id);
-	`).Error
+        CREATE UNIQUE INDEX IF NOT EXISTS idx_budgets_user_month_category
+        ON budgets (user_id, month, category_id);
+    `).Error
 }

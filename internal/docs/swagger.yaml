@@ -1,5 +1,54 @@
 basePath: /api
 definitions:
+  handlers.CashflowPoint:
+    properties:
+      expense:
+        type: number
+      forecast:
+        description: true for projected months
+        type: boolean
+      income:
+        type: number
+      month:
+        description: YYYY-MM
+        type: string
+      net:
+        type: number
+    type: object
+  handlers.CashflowResp:
+    properties:
+      horizon:
+        type: integer
+      points:
+        items:
+          $ref: '#/definitions/handlers.CashflowPoint'
+        type: array
+      window_months:
+        type: integer
+    type: object
+  handlers.SpendSummaryResp:
+    properties:
+      by_category:
+        items:
+          $ref: '#/definitions/handlers.SpendSummaryRow'
+        type: array
+      month:
+        description: YYYY-MM
+        type: string
+      total_expense:
+        type: number
+      total_income:
+        type: number
+    type: object
+  handlers.SpendSummaryRow:
+    properties:
+      category:
+        type: string
+      category_id:
+        type: string
+      total:
+        type: number
+    type: object
   handlers.createCategoryDTO:
     properties:
       name:
@@ -109,6 +158,64 @@ info:
   title: Budgex API
   version: 0.1.0
 paths:
+  /analytics/cashflow_forecast:
+    get:
+      parameters:
+      - description: How many past months to average (default 3)
+        in: query
+        maximum: 12
+        minimum: 1
+        name: window_months
+        type: integer
+      - description: How many future months to forecast (default 3)
+        in: query
+        maximum: 12
+        minimum: 1
+        name: horizon
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.CashflowResp'
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Cashflow forecast (simple average projection)
+      tags:
+      - analytics
+  /analytics/spend_summary:
+    get:
+      parameters:
+      - description: YYYY-MM (defaults to current)
+        in: query
+        name: month
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.SpendSummaryResp'
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Spend summary for a month
+      tags:
+      - analytics
   /budgets/:
     get:
       parameters:

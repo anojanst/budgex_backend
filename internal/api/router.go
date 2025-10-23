@@ -39,6 +39,7 @@ func Build(db *gorm.DB) *fiber.App {
 	handlers.TxHandler{DB: db}.Register(protected)
 	handlers.CategoryHandler{DB: db}.Register(protected)
 	handlers.BudgetHandler{DB: db}.Register(protected)
+	handlers.AnalyticsHandler{DB: db}.Register(protected)
 
 	return app
 }
